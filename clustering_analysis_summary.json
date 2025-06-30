@@ -1,0 +1,12 @@
+{
+  "total_samples": 2173,
+  "accuracy": 0.9599631845375057,
+  "lymphocytes_count": 1270,
+  "tumor_cells_count": 903,
+  "cluster_0_count": 896,
+  "cluster_1_count": 1277,
+  "lymphocytes_precision": 0.9631949882537196,
+  "lymphocytes_recall": 0.968503937007874,
+  "tumor_cells_precision": 0.9553571428571429,
+  "tumor_cells_recall": 0.9479512735326688
+}
