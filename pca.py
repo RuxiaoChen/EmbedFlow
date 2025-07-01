@@ -7,13 +7,14 @@ from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 import matplotlib.pyplot as plt
 import seaborn as sns
+import pdb
 
 # 设置图表样式
 plt.rcParams['axes.unicode_minus'] = False
 sns.set_style("whitegrid")
 
 # 获取 finetune_vectors_sft 文件夹下所有的 .pt 文件
-pt_files = glob.glob("finetune_vectors_sft/*.pt")
+pt_files = glob.glob("VECTOR/VECTOR/*.pt")
 
 print(f"Found {len(pt_files)} .pt files")
 
@@ -68,7 +69,8 @@ print("\nFirst few rows of DataFrame:")
 print(df.head())
 
 # 保存完整的DataFrame（包含向量）到pickle文件
-df.to_pickle("vectors_dataframe.pkl")
+df.to_pickle("vectors_dataframe_nofinetune.pkl")
+pdb.set_trace()
 print("\nComplete DataFrame with vectors saved to vectors_dataframe.pkl")
 
 # ================== PCA Analysis Section ==================
@@ -120,6 +122,6 @@ df['vector_80_variance'] = [row for row in vectors_pca_80]
 print(f"Added 80% variance vectors to DataFrame as new column 'vector_80_variance'")
 
 # 保存更新后的DataFrame
-df.to_pickle("vectors_dataframe.pkl")
+df.to_pickle("vectors_dataframe_nofinetune.pkl")
 print("Updated DataFrame with 80% variance vectors saved to vectors_dataframe.pkl")
 

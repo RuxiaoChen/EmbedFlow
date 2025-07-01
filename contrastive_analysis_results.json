@@ -1,0 +1,70 @@
+{
+  "metrics": {
+    "intra_class_similarity": 0.23191251825380066,
+    "inter_class_similarity": -0.24316079897967052,
+    "intra_class_distance": 6.908385515500586,
+    "inter_class_distance": 8.914202491528636,
+    "similarity_separation": 0.4750733172334712,
+    "distance_separation": 2.0058169760280498
+  },
+  "classification_results": {
+    "accuracy": 0.9719282098481362,
+    "confusion_matrix": [
+      [
+        1240,
+        30
+      ],
+      [
+        31,
+        872
+      ]
+    ],
+    "classification_report": {
+      "Lymphocytes": {
+        "precision": 0.975609756097561,
+        "recall": 0.9763779527559056,
+        "f1-score": 0.9759937032664305,
+        "support": 1270.0
+      },
+      "Tumor Cells": {
+        "precision": 0.9667405764966741,
+        "recall": 0.9656699889258029,
+        "f1-score": 0.9662049861495845,
+        "support": 903.0
+      },
+      "accuracy": 0.9719282098481362,
+      "macro avg": {
+        "precision": 0.9711751662971175,
+        "recall": 0.9710239708408542,
+        "f1-score": 0.9710993447080075,
+        "support": 2173.0
+      },
+      "weighted avg": {
+        "precision": 0.9719241283112743,
+        "recall": 0.9719282098481362,
+        "f1-score": 0.971925957497212,
+        "support": 2173.0
+      }
+    }
+  },
+  "positive_similarities_stats": {
+    "mean": 0.23191251825380066,
+    "std": 0.2713304463564593,
+    "median": 0.2504572684501608,
+    "min": -0.8087730818958095,
+    "max": 0.9756579610413942
+  },
+  "negative_similarities_stats": {
+    "mean": -0.24316079897967052,
+    "std": 0.23067734971854625,
+    "median": -0.26013612679751097,
+    "min": -0.8991733184506495,
+    "max": 0.9065675068822465
+  },
+  "sample_info": {
+    "total_samples": 2173,
+    "positive_pairs": 2426136,
+    "negative_pairs": 2293620,
+    "feature_dimension": 34
+  }
+}

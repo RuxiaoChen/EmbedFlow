@@ -146,7 +146,25 @@ print(f"Intra-class distance: {metrics['intra_class_distance']:.4f}")
 print(f"Inter-class distance: {metrics['inter_class_distance']:.4f}")
 print(f"Distance separation: {metrics['distance_separation']:.4f}")
 
-# 5. t-SNE降维可视化
+# 5. 基于相似度的最近邻分类（用于混淆矩阵）
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.model_selection import cross_val_predict
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+
+print("\nPerforming similarity-based classification...")
+# 使用k=1的最近邻分类器进行留一交叉验证
+knn = KNeighborsClassifier(n_neighbors=1, metric='cosine')
+predicted_labels = cross_val_predict(knn, combined_vectors_scaled, labels, cv=5)
+
+# 计算分类准确率
+accuracy = accuracy_score(labels, predicted_labels)
+print(f"Cross-validation accuracy: {accuracy:.4f}")
+
+# 生成混淆矩阵
+cm = confusion_matrix(labels, predicted_labels, labels=unique_labels)
+print(f"Confusion Matrix:\n{cm}")
+
+# 6. t-SNE降维可视化
 from sklearn.manifold import TSNE
 
 print("\nPerforming t-SNE visualization...")
@@ -156,10 +174,10 @@ tsne_embedding = tsne.fit_transform(combined_vectors_scaled)
 # ================== 可视化 ==================
 print("\nCreating visualizations...")
 
-# 图1: 相似度分布对比
-fig, axes = plt.subplots(2, 2, figsize=(15, 12))
+# 图1: 相似度分布对比和混淆矩阵
+fig, axes = plt.subplots(2, 3, figsize=(18, 12))
 fig.suptitle('Contrastive Learning Analysis: Morphological + Semantic Features\n'
-             f'Separation Score: {metrics["similarity_separation"]:.4f}', 
+             f'Separation Score: {metrics["similarity_separation"]:.4f} | CV Accuracy: {accuracy:.3f}', 
              fontsize=16, fontweight='bold', y=0.98)
 
 # 1.1 余弦相似度分布
@@ -184,7 +202,15 @@ axes[0,1].set_title('Euclidean Distance Distribution')
 axes[0,1].legend()
 axes[0,1].grid(True, alpha=0.3)
 
-# 1.3 t-SNE可视化
+# 1.3 混淆矩阵
+import seaborn as sns
+sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', 
+            xticklabels=unique_labels, yticklabels=unique_labels, ax=axes[0,2])
+axes[0,2].set_xlabel('Predicted Label')
+axes[0,2].set_ylabel('True Label')
+axes[0,2].set_title(f'Confusion Matrix\n(Accuracy: {accuracy:.3f})')
+
+# 1.4 t-SNE可视化
 label_to_color = {'Lymphocytes': 'blue', 'Tumor Cells': 'orange'}
 for label in unique_labels:
     mask = labels == label
@@ -196,7 +222,7 @@ axes[1,0].set_title('t-SNE Visualization')
 axes[1,0].legend()
 axes[1,0].grid(True, alpha=0.3)
 
-# 1.4 对比指标条形图
+# 1.5 对比指标条形图
 metrics_names = ['Intra-class\nSimilarity', 'Inter-class\nSimilarity', 'Similarity\nSeparation',
                 'Intra-class\nDistance', 'Inter-class\nDistance', 'Distance\nSeparation']
 metrics_values = [metrics['intra_class_similarity'], metrics['inter_class_similarity'], metrics['similarity_separation'],
@@ -215,6 +241,29 @@ for bar, value in zip(bars, metrics_values):
     height = bar.get_height()
     axes[1,1].text(bar.get_x() + bar.get_width()/2., height + 0.01 if height >= 0 else height - 0.05,
                   f'{value:.3f}', ha='center', va='bottom' if height >= 0 else 'top', fontsize=9)
+
+# 1.6 分类报告文本显示
+report = classification_report(labels, predicted_labels, target_names=unique_labels, output_dict=True)
+axes[1,2].axis('off')
+report_text = f"""Classification Report:
+
+Lymphocytes:
+  Precision: {report['Lymphocytes']['precision']:.3f}
+  Recall: {report['Lymphocytes']['recall']:.3f}
+  F1-score: {report['Lymphocytes']['f1-score']:.3f}
+
+Tumor Cells:
+  Precision: {report['Tumor Cells']['precision']:.3f}
+  Recall: {report['Tumor Cells']['recall']:.3f}
+  F1-score: {report['Tumor Cells']['f1-score']:.3f}
+
+Overall Accuracy: {report['accuracy']:.3f}
+Macro Avg F1: {report['macro avg']['f1-score']:.3f}
+Weighted Avg F1: {report['weighted avg']['f1-score']:.3f}"""
+
+axes[1,2].text(0.1, 0.9, report_text, transform=axes[1,2].transAxes, 
+               fontsize=10, verticalalignment='top', fontfamily='monospace',
+               bbox=dict(boxstyle='round,pad=0.5', facecolor='lightgray', alpha=0.8))
 
 plt.tight_layout(rect=[0, 0.03, 1, 0.94])
 plt.savefig('contrastive_learning_analysis.png', dpi=300, bbox_inches='tight')
@@ -311,6 +360,11 @@ print("\nSaving results...")
 # 保存分析结果
 contrastive_results = {
     'metrics': metrics,
+    'classification_results': {
+        'accuracy': float(accuracy),
+        'confusion_matrix': cm.tolist(),
+        'classification_report': report
+    },
     'positive_similarities_stats': {
         'mean': float(positive_cosine_similarities.mean()),
         'std': float(positive_cosine_similarities.std()),
@@ -351,14 +405,22 @@ results_df.to_csv('contrastive_learning_results.csv', index=False)
 print(f"\n" + "="*60)
 print("CONTRASTIVE LEARNING ANALYSIS SUMMARY")
 print("="*60)
+print(f"Classification accuracy: {accuracy:.4f} ({accuracy*100:.2f}%)")
 print(f"Feature separation quality: {'EXCELLENT' if metrics['similarity_separation'] > 0.3 else 'GOOD' if metrics['similarity_separation'] > 0.1 else 'MODERATE'}")
 print(f"Similarity separation score: {metrics['similarity_separation']:.4f}")
 print(f"Distance separation score: {metrics['distance_separation']:.4f}")
 print(f"Intra-class cohesion: {metrics['intra_class_similarity']:.4f}")
 print(f"Inter-class distinction: {metrics['inter_class_similarity']:.4f}")
 
+print(f"\nConfusion Matrix:")
+print(f"                Predicted")
+print(f"         Lymphocytes  Tumor Cells")
+print(f"Actual")
+print(f"Lymphocytes      {cm[0,0]:4d}        {cm[0,1]:4d}")
+print(f"Tumor Cells      {cm[1,0]:4d}        {cm[1,1]:4d}")
+
 print(f"\nGenerated files:")
-print("- contrastive_learning_analysis.png: Main analysis dashboard")
+print("- contrastive_learning_analysis.png: Main analysis dashboard (WITH CONFUSION MATRIX)")
 print("- similarity_matrices.png: Similarity matrix visualizations")
 print("- per_class_contrastive_analysis.png: Detailed per-class analysis")
 print("- contrastive_analysis_results.json: Numerical results")
